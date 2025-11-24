@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: keycloak-postgres-pvc
+  namespace: file-sharing
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-postgres
+  namespace: file-sharing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-postgres
+  template:
+    metadata:
+      labels:
+        app: keycloak-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_DB
+              value: keycloak
+            - name: POSTGRES_USER
+              value: keycloak
+            - name: POSTGRES_PASSWORD
+              value: keycloakpassword
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: keycloak-postgres-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-postgres
+  namespace: file-sharing
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: keycloak-postgres
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: file-sharing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:25.0.6
+          args: ["start-dev", "--import-realm"]
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: admin
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://keycloak-postgres:5432/keycloak
+            - name: KC_DB_USERNAME
+              value: keycloak
+            - name: KC_DB_PASSWORD
+              value: keycloakpassword
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: realm-config
+              mountPath: /opt/keycloak/data/import
+      volumes:
+        - name: realm-config
+          configMap:
+            name: keycloak-realm-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: file-sharing
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - port: 8080
+      targetPort: 8080
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: file-sharing
+data:
+  bondbridg-realm.json: |
+    {
+      "id": "bondbridg",
+      "realm": "bondbridg",
+      "enabled": true,
+      "users": [
+        {
+          "username": "testuser",
+          "email": "testuser@bondbridg.com",
+          "firstName": "Test",
+          "lastName": "User",
+          "enabled": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": "testpass123",
+              "temporary": false
+            }
+          ]
+        }
+      ],
+      "clients": [
+        {
+          "clientId": "frontend",
+          "enabled": true,
+          "publicClient": true,
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": true,
+          "protocol": "openid-connect",
+          "redirectUris": [
+            "http://localhost:30001/*",
+            "http://localhost:30001/",
+            "http://localhost:30001/login/callback",
+            "http://localhost:*"
+          ],
+          "webOrigins": [
+            "+"
+          ],
+          "attributes": {
+            "pkce.code.challenge.method": "S256"
+          }
+        }
+      ]
+    }
