@@ -1,0 +1,9 @@
+auth:
+  rootPassword: mongopassword
+  rootUser: admin
+
+replicaSet:
+  enabled: false
+
+persistence:
+  size: 5Gi
