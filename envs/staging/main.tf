@@ -32,4 +32,11 @@ module "platform" {
   namespace   = "file-sharing"
   environment = "staging"
   create_namespace = false
+  datadog_api_key = var.datadog_api_key
+}
+
+variable "datadog_api_key" {
+  description = "Datadog API key for platform monitoring"
+  type        = string
+  sensitive   = true
 }

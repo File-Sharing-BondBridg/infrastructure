@@ -8,3 +8,8 @@ variable "environment" {
   description = "Deployment environment (dev/staging/prod)"
   default     = "dev"
 }
+
+variable "datadog_api_key" {
+  type = string
+  sensitive = true
+}

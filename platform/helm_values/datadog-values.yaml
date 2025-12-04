@@ -1,0 +1,42 @@
+datadog:
+  site: "us5.datadoghq.com"
+  
+  clusterName: "kind-bondbridg"
+
+  apiKeyExistingSecret: "datadog-secret"
+
+  hostname: "kubernetes"
+
+  kubelet:
+    host:
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+    tlsVerify: false
+
+  logs:
+    enabled: true
+    containerCollectAll: true
+
+  apm:
+    enabled: true
+    unixDomainSocketEnabled: true
+
+  processAgent:
+    enabled: true
+
+  kubeStateMetricsEnabled: true
+  kubeStateMetricsCore:
+    enabled: true
+
+  containerImages:
+    agent:
+      image: "public.ecr.aws/datadog/agent:7.53.0"
+
+agents:
+  enabled: true
+
+clusterAgent:
+  enabled: true
+  metricsProvider:
+    enabled: true

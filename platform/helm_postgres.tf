@@ -2,7 +2,7 @@ resource "helm_release" "postgres_fileservice" {
   name       = "postgres-fileservice"
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
-  namespace  = "file-service"
+  namespace  = local.namespace
   create_namespace = true
 
   values = [

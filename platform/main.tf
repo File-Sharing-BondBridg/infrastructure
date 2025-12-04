@@ -90,3 +90,31 @@ resource "helm_release" "nats" {
   values           = [file("${path.module}/helm_values/nats-values.yaml")]
   depends_on       = [kubernetes_namespace.platform, data.kubernetes_namespace.platform]
 }
+
+resource "kubernetes_secret" "datadog_secret" {
+  metadata {
+    name = "datadog-secret"
+    namespace = local.namespace
+  }
+
+  data = {
+    "api-key" = var.datadog_api_key
+  }
+
+  type = "Opaque"
+}
+
+resource "helm_release" "datadog" {
+  name       = "datadog"
+  repository = "https://helm.datadoghq.com"
+  chart      = "datadog"
+  namespace  = local.namespace
+
+  values = [
+    file("${path.module}/helm_values/datadog-values.yaml")
+  ]
+
+  depends_on = [
+    kubernetes_secret.datadog_secret
+  ]
+}
