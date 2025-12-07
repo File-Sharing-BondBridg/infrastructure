@@ -48,13 +48,16 @@ resource "helm_release" "minio" {
   name             = "minio"
   repository       = "https://charts.bitnami.com/bitnami"
   chart            = "minio"
-  version          = "17.0.21"
+  version          = "12.8.5"
   namespace        = local.namespace
-  create_namespace = false
-  timeout          = 1200
-  wait             = false
-  values           = [file("${path.module}/helm_values/minio-values.yaml")]
-  depends_on       = [kubernetes_namespace.platform, data.kubernetes_namespace.platform]
+
+  values = [
+    file("${path.module}/helm_values/minio-values.yaml")
+  ]
+
+  depends_on = [
+    kubernetes_namespace.platform
+  ]
 }
 
 resource "helm_release" "mongodb" {
@@ -81,14 +84,16 @@ resource "helm_release" "postgres" {
 }
 
 resource "helm_release" "nats" {
-  name             = "nats"
-  repository       = "https://nats-io.github.io/k8s/helm/charts/"
-  chart            = "nats"
-  version          = "2.12.2"
-  namespace        = local.namespace
-  create_namespace = false
-  values           = [file("${path.module}/helm_values/nats-values.yaml")]
-  depends_on       = [kubernetes_namespace.platform, data.kubernetes_namespace.platform]
+  name              = "nats"
+  repository        = "https://nats-io.github.io/k8s/helm/charts/"
+  chart             = "nats"
+  version           = "2.12.2"
+  namespace         = local.namespace
+  create_namespace  = false
+  timeout           = 600  # Give extra time for the recreate
+  wait              = true  # Ensures pods are ready post-recreate
+  values            = [file("${path.module}/helm_values/nats-values.yaml")]
+  depends_on        = [kubernetes_namespace.platform, data.kubernetes_namespace.platform]
 }
 
 resource "kubernetes_secret" "datadog_secret" {

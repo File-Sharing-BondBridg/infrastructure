@@ -1,9 +1,9 @@
+image:
+  repository: minio/minio
+  tag: latest
+  pullPolicy: IfNotPresent
+
 mode: standalone
-
-rootUser: minioadmin
-rootPassword: minioadmin
-
-replicas: 1
 
 resources:
   requests:
@@ -11,5 +11,20 @@ resources:
     memory: 256Mi
 
 persistence:
-  enabled: true
-  size: 5Gi
+  enabled: false
+
+auth:
+  rootUser: minioadmin
+  rootPassword: minioadmin
+
+extraArgs:
+  - server
+  - /data
+  - --console-address
+  - ":9001"
+
+service:
+  type: ClusterIP
+  ports:
+    api: 9000
+    console: 9001

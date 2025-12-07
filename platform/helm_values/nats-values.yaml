@@ -1,8 +1,9 @@
 image:
   tag: latest
 
-jetstream:
-  enabled: true
+config:
+  jetstream:
+    enabled: true
 
 resources:
   requests:

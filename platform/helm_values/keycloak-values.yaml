@@ -1,15 +1,15 @@
-replicaCount: 1
+image:
+  tag: 25.0.6
 
 auth:
   adminUser: admin
   adminPassword: admin
 
+proxy: "edge"
+
 service:
   type: ClusterIP
+  port: 8080
 
-postgresql:
+ingress:
   enabled: false
-
-extraEnv: |
-  - name: KC_PROXY
-    value: "edge"

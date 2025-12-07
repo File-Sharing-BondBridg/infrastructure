@@ -8,7 +8,7 @@ variable "k8s_token" {}
 variable "k8s_ca" {}
 
 variable "namespace" {
-  default = "platform"
+  default = "file-sharing"
 }
 
 variable "environment" {}
